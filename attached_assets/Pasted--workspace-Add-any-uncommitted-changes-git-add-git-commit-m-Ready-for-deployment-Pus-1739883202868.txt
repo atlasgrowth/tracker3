@@ -1,0 +1,48 @@
+~/workspace$ # Add any uncommitted changes
+git add .
+git commit -m "Ready for deployment"
+
+# Push to GitHub (credentials should already be passed through Replit)
+git push -u origin main
+
+# Deploy to Vercel through Replit
+npx vercel --yes
+On branch main
+Your branch is ahead of 'origin/main' by 2 commits.
+  (use "git push" to publish your local commits)
+
+nothing to commit, working tree clean
+Enumerating objects: 9, done.
+Counting objects: 100% (9/9), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (6/6), done.
+Writing objects: 100% (6/6), 853 bytes | 853.00 KiB/s, done.
+Total 6 (delta 4), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (4/4), completed with 3 local objects.
+To https://github.com/atlasgrowth/tracker3
+   881c810..df91e76  main -> main
+branch 'main' set up to track 'origin/main'.
+Vercel CLI 41.1.4
+Error: The specified token is not valid. Use `vercel login` to generate a new token.
+ Environment updated. Reloading shell...
+~/workspace$ ^[[200~vercel login^[[201~
+vercel login
+Vercel CLI 41.1.4
+? Log in to Vercel Continue with GitHub
+> Please visit the following URL in your web browser:
+> Success! GitHub authentication complete for nicksanford2341@gmail.com
+Congratulations! You are now logged in. In order to deploy something, run `vercel`.
+💡  Connect your Git Repositories to deploy every branch push automatically (https://vercel.link/git).
+~/workspace$ vercel link
+Vercel CLI 41.1.4
+? Set up “~/workspace”? yes
+? Which scope should contain your project? nick's projects
+? Link to existing project? no
+? What’s your project’s name? trackingcrm
+? In which directory is your code located? ./.
+✅  Linked to nicks-projects-64f55096/trackingcrm (created .vercel and added it to .gitignore)
+~/workspace$ vercel --prod
+Vercel CLI 41.1.4
+🔍  Inspect: https://vercel.com/nicks-projects-64f55096/trackingcrm/CF9yim7MfKhyFG9kTPXdaaFVXB18 [2s]
+✅  Production: https://trackingcrm-il1txak00-nicks-projects-64f55096.vercel.app [2s]
+❗️  Due to `builds` existing in your configuration file, the Build and Development Settings defined in your Project Settings will not apply. Learn More: https://vercel.link/unused-build-settings
