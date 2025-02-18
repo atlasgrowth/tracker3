@@ -8,6 +8,7 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 export default defineConfig({
+  base: '/tracker3/',
   plugins: [
     react(),
     runtimeErrorOverlay(),
