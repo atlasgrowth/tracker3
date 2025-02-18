@@ -1,0 +1,72 @@
+
+import fs from 'fs/promises';
+import path from 'path';
+import { AnalyticsData, SessionData } from '../client/src/types/analytics';
+
+export async function processAnalyticsData(siteId: string): Promise<AnalyticsData> {
+  const files = await fs.readdir(path.join(process.cwd(), 'analytics'));
+  const relevantFiles = files.filter(f => f.startsWith(`analytics_${siteId}_`));
+  
+  const sessions: SessionData[] = [];
+  for (const file of relevantFiles) {
+    const content = await fs.readFile(path.join(process.cwd(), 'analytics', file), 'utf-8');
+    const lines = content.trim().split('\n');
+    sessions.push(...lines.map(line => JSON.parse(line)));
+  }
+
+  const uniqueSessions = new Set(sessions.map(s => s.startTime));
+  const totalVisits = uniqueSessions.size;
+
+  const pageViews: { [path: string]: number } = {};
+  const timeSpentTotal: { [path: string]: number } = {};
+  const scrollDepthTotal: { [path: string]: number } = {};
+  const pageViewCounts: { [path: string]: number } = {};
+
+  sessions.forEach(session => {
+    session.pageViews.forEach(view => {
+      pageViews[view.path] = (pageViews[view.path] || 0) + 1;
+      timeSpentTotal[view.path] = (timeSpentTotal[view.path] || 0) + view.timeSpent;
+      scrollDepthTotal[view.path] = (scrollDepthTotal[view.path] || 0) + view.scrollDepth;
+      pageViewCounts[view.path] = (pageViewCounts[view.path] || 0) + 1;
+    });
+  });
+
+  const averageTimeSpent: { [path: string]: number } = {};
+  const averageScrollDepth: { [path: string]: number } = {};
+  Object.keys(pageViews).forEach(path => {
+    averageTimeSpent[path] = timeSpentTotal[path] / pageViewCounts[path];
+    averageScrollDepth[path] = scrollDepthTotal[path] / pageViewCounts[path];
+  });
+
+  const browserStats: { [browser: string]: number } = {};
+  const screenSizes: { [size: string]: number } = {};
+  const countries: { [country: string]: number } = {};
+  const regions: { [region: string]: number } = {};
+
+  sessions.forEach(session => {
+    browserStats[session.deviceInfo.browser] = (browserStats[session.deviceInfo.browser] || 0) + 1;
+    const screenSize = `${session.deviceInfo.screenSize.width}x${session.deviceInfo.screenSize.height}`;
+    screenSizes[screenSize] = (screenSizes[screenSize] || 0) + 1;
+    countries[session.locationInfo.country] = (countries[session.locationInfo.country] || 0) + 1;
+    regions[session.locationInfo.region] = (regions[session.locationInfo.region] || 0) + 1;
+  });
+
+  return {
+    totalVisits,
+    averageSessionDuration: sessions.reduce((acc, s) => acc + (s.lastActive - s.startTime), 0) / sessions.length,
+    pageViews,
+    averageScrollDepth,
+    averageTimeSpent,
+    popularPaths: Object.entries(pageViews)
+      .sort(([,a], [,b]) => b - a)
+      .map(([path]) => path),
+    deviceStats: {
+      browsers: browserStats,
+      screenSizes
+    },
+    locationStats: {
+      countries,
+      regions
+    }
+  };
+}

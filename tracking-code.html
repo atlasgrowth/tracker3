@@ -1,0 +1,107 @@
+<!-- Add this right before the closing </body> tag -->
+<script>
+  // Get the business ID from URL parameters
+  const urlParams = new URLSearchParams(window.location.search);
+  const siteId = urlParams.get('site_id');
+
+  if (siteId) {
+    // Initialize session data
+    const SESSION = {
+      siteId: siteId,
+      startTime: Date.now(),
+      lastActive: Date.now(),
+      deviceInfo: {
+        browser: navigator.userAgent,
+        os: navigator.platform,
+        screenSize: {
+          width: window.screen.width,
+          height: window.screen.height
+        }
+      },
+      pageViews: [],
+      clicks: [],
+      navigationPath: []
+    };
+
+    // Track page view
+    function recordPageView() {
+      const pageView = {
+        path: window.location.pathname + window.location.search,
+        timestamp: Date.now(),
+        timeSpent: 0,
+        scrollDepth: 0,
+        deviceInfo: SESSION.deviceInfo,
+        location: { country: 'Unknown', region: 'Unknown' }
+      };
+
+      // Calculate scroll depth
+      let maxScroll = 0;
+      document.addEventListener('scroll', () => {
+        const scrollPercent = 
+          (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
+        maxScroll = Math.max(maxScroll, scrollPercent);
+        pageView.scrollDepth = maxScroll;
+      });
+
+      // Update time spent
+      const interval = setInterval(() => {
+        pageView.timeSpent = Date.now() - pageView.timestamp;
+      }, 1000);
+
+      SESSION.pageViews.push(pageView);
+      SESSION.navigationPath.push(pageView.path);
+
+      // Cleanup on page unload
+      window.addEventListener('beforeunload', () => {
+        clearInterval(interval);
+        sendAnalytics();
+      });
+    }
+
+    // Track clicks
+    document.addEventListener('click', (e) => {
+      const target = e.target;
+      if (target instanceof HTMLElement) {
+        SESSION.clicks.push({
+          path: window.location.pathname + window.location.search,
+          timestamp: Date.now(),
+          elementId: target.id || '',
+          elementText: target.innerText || '',
+          position: {
+            x: e.clientX,
+            y: e.clientY
+          }
+        });
+      }
+    });
+
+    // Send analytics data
+    async function sendAnalytics() {
+      const PIPELINE_URL = 'https://bbd5027a-f3b6-48cb-b2e3-7c31fdf9c394-00-1a4b9g7vepksy.janeway.replit.dev';
+      
+      try {
+        // Record visit duration
+        await fetch(`${PIPELINE_URL}/api/businesses/${siteId}/visits`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            duration: Math.round((Date.now() - SESSION.startTime) / 1000),
+            source: document.referrer || 'direct'
+          })
+        });
+
+        // Send detailed analytics
+        await fetch(`${PIPELINE_URL}/api/businesses/${siteId}/analytics`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(SESSION)
+        });
+      } catch (e) {
+        console.error('Failed to send analytics:', e);
+      }
+    }
+
+    // Start tracking
+    recordPageView();
+  }
+</script>

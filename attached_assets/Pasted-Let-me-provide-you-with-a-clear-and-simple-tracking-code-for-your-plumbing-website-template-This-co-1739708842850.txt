@@ -1,0 +1,52 @@
+Let me provide you with a clear and simple tracking code for your plumbing website template. This code will automatically track all businesses based on the site_id parameter in the URL. Here's the minimal version you need to add to your website:
+
+<!-- Add this right before your closing </body> tag -->
+<script>
+  // Get the business ID from URL parameters
+  const urlParams = new URLSearchParams(window.location.search);
+  const siteId = urlParams.get('site_id');
+  if (siteId) {
+    // Initialize tracking
+    const SESSION = {
+      siteId: siteId,
+      startTime: Date.now(),
+      pageViews: [{
+        path: window.location.pathname + window.location.search,
+        timestamp: Date.now(),
+        deviceInfo: {
+          browser: navigator.userAgent,
+          os: navigator.platform,
+          screenSize: { width: window.screen.width, height: window.screen.height }
+        }
+      }]
+    };
+    // Send data when user leaves
+    window.addEventListener('beforeunload', async () => {
+      try {
+        await fetch('https://bbd5027a-f3b6-48cb-b2e3-7c31fdf9c394-00-1a4b9g7vepksy.janeway.replit.dev/api/businesses/' + siteId + '/visits', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            duration: Math.round((Date.now() - SESSION.startTime) / 1000),
+            source: document.referrer || 'direct'
+          })
+        });
+        await fetch('https://bbd5027a-f3b6-48cb-b2e3-7c31fdf9c394-00-1a4b9g7vepksy.janeway.replit.dev/api/businesses/' + siteId + '/analytics', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(SESSION)
+        });
+      } catch (e) {
+        console.error('Failed to send analytics:', e);
+      }
+    });
+  }
+</script>
+This is a simplified version that:
+
+Gets the site_id from your URL (e.g. ?site_id=1stcallplumbing)
+Tracks basic page views and visit duration
+Sends data to the pipeline management system when the user leaves the page
+Just copy this code and paste it right before the closing </body> tag in your website template. It will work for all your business sites since it reads the site_id from the URL.
+
+48 minutes ago

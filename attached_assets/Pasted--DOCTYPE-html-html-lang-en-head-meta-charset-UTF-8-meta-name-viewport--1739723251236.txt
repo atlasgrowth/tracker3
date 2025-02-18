@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <!-- Main React/TSX script (unchanged) -->
+    <script type="module" src="/src/main.tsx"></script>
+
+    <!-- Analytics script -->
+    <script>
+      const API_URL = 'https://b5e9c5a4-645b-4f5f-bbe2-d30e51092344-00-1hjojg05okzy0.spock.replit.dev';
+      const urlParams = new URLSearchParams(window.location.search);
+      const siteId = urlParams.get('site_id');
+
+      if (siteId) {
+        const SESSION = {
+          siteId: siteId,
+          startTime: Date.now(),
+          lastActive: Date.now(),
+          deviceInfo: {
+            browser: navigator.userAgent,
+            os: navigator.platform,
+            screenSize: {
+              width: window.screen.width,
+              height: window.screen.height
+            }
+          },
+          pageViews: [],
+          clicks: [],
+          navigationPath: []
+        };
+
+        // Track page view
+        let maxScroll = 0;
+        let pageStartTime = Date.now();
+
+        function trackPageView() {
+          const path = window.location.pathname + window.location.search;
+          SESSION.pageViews.push({
+            path,
+            timestamp: Date.now(),
+            timeSpent: Math.round((Date.now() - pageStartTime) / 1000),
+            scrollDepth: maxScroll,
+            deviceInfo: SESSION.deviceInfo,
+            location: {
+              country: 'US', // Example location
+              region: 'AR'
+            }
+          });
+          SESSION.navigationPath.push(path);
+        }
+
+        // Track initial page view
+        trackPageView();
+
+        // Track scroll
+        document.addEventListener('scroll', () => {
+          const scrollPercent = Math.round(
+            ((window.scrollY + window.innerHeight) /
+              document.documentElement.scrollHeight) *
+              100
+          );
+          maxScroll = Math.max(maxScroll, scrollPercent);
+        });
+
+        // Track clicks
+        document.addEventListener('click', (e) => {
+          const target = e.target;
+          if (target instanceof HTMLElement) {
+            SESSION.clicks.push({
+              path: window.location.pathname + window.location.search,
+              timestamp: Date.now(),
+              elementId: target.id || '',
+              elementText: target.innerText || '',
+              position: {
+                x: e.clientX,
+                y: e.clientY
+              }
+            });
+          }
+        });
+
+        // Record initial visit
+        fetch(`${API_URL}/api/businesses/${siteId}/visits`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Origin': window.location.origin
+          },
+          mode: 'cors',
+          body: JSON.stringify({
+            duration: 0,
+            source: document.referrer || 'direct'
+          })
+        }).catch((e) => console.warn('Initial visit recording failed:', e));
+
+        // Send data before page unload
+        window.addEventListener('beforeunload', () => {
+          // Update the final page view's timeSpent and scrollDepth
+          if (SESSION.pageViews.length > 0) {
+            SESSION.pageViews[SESSION.pageViews.length - 1].timeSpent =
+              Math.round((Date.now() - pageStartTime) / 1000);
+            SESSION.pageViews[SESSION.pageViews.length - 1].scrollDepth = maxScroll;
+          }
+
+          const duration = Math.round((Date.now() - SESSION.startTime) / 1000);
+
+          // 1) Record visit
+          fetch(`${API_URL}/api/businesses/${siteId}/visits`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              siteId: siteId, // Removed parseInt; using string-based siteId
+              duration: duration,
+              source: document.referrer || 'direct'
+            }),
+            keepalive: true
+          }).catch(console.error);
+
+          // 2) Send analytics data to the correct endpoint
+          fetch(`${API_URL}/api/businesses/${siteId}/analytics`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(SESSION),
+            keepalive: true
+          }).catch(console.error);
+        });
+      }
+    </script>
+  </body>
+</html>

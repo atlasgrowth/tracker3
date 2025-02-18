@@ -1,0 +1,728 @@
+=== Schema (shared/schema.ts) ===
+
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { createInsertSchema } from "drizzle-zod";
+import { z } from "zod";
+
+export const businesses = pgTable("businesses", {
+  id: serial("id").primaryKey(),
+  siteId: text("site_id").notNull().unique(),
+  name: text("name").notNull(),
+  placeId: text("place_id").notNull(),
+  rating: integer("rating"),
+  totalReviews: integer("total_reviews"),
+  hasWebsite: boolean("has_website"),
+  hasFacebook: boolean("has_facebook"),
+  city: text("city"),
+  pipelineStage: text("pipeline_stage").default("website_created"),
+  lastViewed: timestamp("last_viewed"),
+  totalViews: integer("total_views").default(0),
+  notes: text("notes"),
+  metadata: jsonb("metadata")
+});
+
+export const visits = pgTable("visits", {
+  id: serial("id").primaryKey(),
+  businessId: integer("business_id").notNull(),
+  timestamp: timestamp("timestamp").notNull(),
+  duration: integer("duration"), // in seconds
+  source: text("source")
+});
+
+export const insertBusinessSchema = createInsertSchema(businesses).omit({ 
+  id: true,
+  lastViewed: true,
+  totalViews: true,
+  pipelineStage: true
+});
+
+export type InsertBusiness = z.infer<typeof insertBusinessSchema>;
+export type Business = typeof businesses.$inferSelect;
+export type Visit = typeof visits.$inferSelect;
+
+export const PIPELINE_STAGES = [
+  "website_created",
+  "website_sent",
+  "website_viewed",
+  "lead_contacted",
+  "follow_up",
+  "not_interested"
+] as const;
+
+export type PipelineStage = typeof PIPELINE_STAGES[number];
+
+=== Server Routes (server/routes.ts) ===
+
+import type { Express } from "express";
+import { createServer, type Server } from "http";
+import { storage } from "./storage";
+import { insertBusinessSchema, PIPELINE_STAGES } from "@shared/schema";
+import { z } from "zod";
+
+export async function registerRoutes(app: Express): Promise<Server> {
+  // Get all businesses
+  app.get("/api/businesses", async (req, res) => {
+    const businesses = await storage.getBusinesses();
+    res.json(businesses);
+  });
+
+  // Get single business
+  app.get("/api/businesses/:siteId", async (req, res) => {
+    const business = await storage.getBusiness(req.params.siteId);
+    if (!business) return res.status(404).json({ message: "Business not found" });
+    res.json(business);
+  });
+
+  // Create business
+  app.post("/api/businesses", async (req, res) => {
+    const result = insertBusinessSchema.safeParse(req.body);
+    if (!result.success) {
+      return res.status(400).json({ errors: result.error.errors });
+    }
+    const business = await storage.createBusiness(result.data);
+    res.status(201).json(business);
+  });
+
+  // Update business stage
+  app.patch("/api/businesses/:siteId/stage", async (req, res) => {
+    const schema = z.object({ stage: z.enum(PIPELINE_STAGES) });
+    const result = schema.safeParse(req.body);
+    if (!result.success) {
+      return res.status(400).json({ errors: result.error.errors });
+    }
+
+    try {
+      const business = await storage.updateBusinessStage(
+        req.params.siteId,
+        result.data.stage
+      );
+      res.json(business);
+    } catch (error) {
+      res.status(404).json({ message: "Business not found" });
+    }
+  });
+
+  // Update business notes
+  app.patch("/api/businesses/:siteId/notes", async (req, res) => {
+    const schema = z.object({ notes: z.string() });
+    const result = schema.safeParse(req.body);
+    if (!result.success) {
+      return res.status(400).json({ errors: result.error.errors });
+    }
+
+    try {
+      const business = await storage.updateBusinessNotes(
+        req.params.siteId,
+        result.data.notes
+      );
+      res.json(business);
+    } catch (error) {
+      res.status(404).json({ message: "Business not found" });
+    }
+  });
+
+  // Record visit
+  app.post("/api/businesses/:siteId/visits", async (req, res) => {
+    const schema = z.object({
+      duration: z.number(),
+      source: z.string()
+    });
+
+    const result = schema.safeParse(req.body);
+    if (!result.success) {
+      return res.status(400).json({ errors: result.error.errors });
+    }
+
+    try {
+      const business = await storage.getBusiness(req.params.siteId);
+      if (!business) {
+        return res.status(404).json({ message: "Business not found" });
+      }
+
+      const visit = await storage.recordVisit(
+        business.id,
+        result.data.duration,
+        result.data.source
+      );
+      res.status(201).json(visit);
+    } catch (error) {
+      console.error('Error recording visit:', error);
+      res.status(500).json({ message: "Failed to record visit" });
+    }
+  });
+
+  // Get business visits
+  app.get("/api/businesses/:siteId/visits", async (req, res) => {
+    try {
+      const business = await storage.getBusiness(req.params.siteId);
+      if (!business) {
+        return res.status(404).json({ message: "Business not found" });
+      }
+      const visits = await storage.getVisits(req.params.siteId);
+      res.json(visits);
+    } catch (error) {
+      console.error('Error fetching visits:', error);
+      res.status(500).json({ message: "Failed to fetch visits" });
+    }
+  });
+
+  const httpServer = createServer(app);
+  return httpServer;
+}
+
+=== Server Index (server/index.ts) ===
+
+import express, { type Request, Response, NextFunction } from "express";
+import { registerRoutes } from "./routes";
+import { setupVite, serveStatic, log } from "./vite";
+
+const app = express();
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+
+app.use((req, res, next) => {
+  const start = Date.now();
+  const path = req.path;
+  let capturedJsonResponse: Record<string, any> | undefined = undefined;
+
+  const originalResJson = res.json;
+  res.json = function (bodyJson, ...args) {
+    capturedJsonResponse = bodyJson;
+    return originalResJson.apply(res, [bodyJson, ...args]);
+  };
+
+  res.on("finish", () => {
+    const duration = Date.now() - start;
+    if (path.startsWith("/api")) {
+      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
+      if (capturedJsonResponse) {
+        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
+      }
+
+      if (logLine.length > 80) {
+        logLine = logLine.slice(0, 79) + "…";
+      }
+
+      log(logLine);
+    }
+  });
+
+  next();
+});
+
+(async () => {
+  const server = await registerRoutes(app);
+
+  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+    const status = err.status || err.statusCode || 500;
+    const message = err.message || "Internal Server Error";
+
+    res.status(status).json({ message });
+    throw err;
+  });
+
+  // importantly only setup vite in development and after
+  // setting up all the other routes so the catch-all route
+  // doesn't interfere with the other routes
+  if (app.get("env") === "development") {
+    await setupVite(app, server);
+  } else {
+    serveStatic(app);
+  }
+
+  // ALWAYS serve the app on port 5000
+  // this serves both the API and the client
+  const PORT = 5000;
+  server.listen(PORT, "0.0.0.0", () => {
+    log(`serving on port ${PORT}`);
+  });
+})();
+
+
+=== Server Storage (server/storage.ts) ===
+
+import { Business, Visit, InsertBusiness, PIPELINE_STAGES } from "@shared/schema";
+import { promises as fs } from 'fs';
+import { join } from 'path';
+
+export interface IStorage {
+  // Business operations
+  getBusinesses(): Promise<Business[]>;
+  getBusiness(siteId: string): Promise<Business | undefined>;
+  createBusiness(business: InsertBusiness): Promise<Business>;
+  updateBusinessStage(siteId: string, stage: string): Promise<Business>;
+  updateBusinessNotes(siteId: string, notes: string): Promise<Business>;
+
+  // Visit operations
+  recordVisit(businessId: number, duration: number, source: string): Promise<Visit>;
+  getVisits(businessId: number): Promise<Visit[]>;
+}
+
+interface MetadataBusinesses {
+  last_updated: string;
+  business_count: number;
+  businesses: {
+    [key: string]: {
+      name: string;
+      site_id: string;
+      place_id: string;
+      rating: number;
+      total_reviews: number;
+      scores: {
+        photo_score: number;
+        facebook_score: number;
+      };
+      has_website: boolean;
+      has_facebook: boolean;
+      city: string;
+    };
+  };
+}
+
+export class MemStorage implements IStorage {
+  private businesses: Map<string, Business>;
+  private visits: Map<number, Visit[]>;
+  private currentId: number;
+  private visitId: number;
+
+  constructor() {
+    this.businesses = new Map();
+    this.visits = new Map();
+    this.currentId = 1;
+    this.visitId = 1;
+
+    // Load initial data from metadata file
+    this.initializeBusinesses().catch(error => {
+      console.error('Failed to initialize businesses:', error);
+      process.exit(1); // Exit if we can't load the businesses
+    });
+  }
+
+  private async loadMetadataFromFile(): Promise<MetadataBusinesses> {
+    try {
+      const url = 'https://raw.githubusercontent.com/atlasgrowth/Arkansasplumbers/main/data/processed/metadata.json';
+      console.log('Fetching metadata from:', url);
+
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch metadata: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('Parsed businesses count:', Object.keys(data.businesses || {}).length);
+
+      if (!data || typeof data !== 'object' || !data.businesses) {
+        throw new Error('Invalid metadata structure - missing businesses object');
+      }
+
+      return data as MetadataBusinesses;
+    } catch (error) {
+      console.error('Error loading metadata:', error);
+      throw error;
+    }
+  }
+
+  private async initializeBusinesses() {
+    try {
+      const metadata = await this.loadMetadataFromFile();
+      const businessesData = metadata.businesses;
+
+      console.log('Initializing businesses, found:', Object.keys(businessesData).length);
+
+      // Load all businesses from the metadata
+      Object.entries(businessesData).forEach(([siteId, business]) => {
+        const id = this.currentId++;
+        const newBusiness: Business = {
+          id,
+          siteId,
+          name: business.name,
+          placeId: business.place_id,
+          rating: business.rating ?? null,
+          totalReviews: business.total_reviews ?? null,
+          hasWebsite: business.has_website ?? false,
+          hasFacebook: business.has_facebook ?? false,
+          city: business.city ?? null,
+          pipelineStage: "website_created",
+          lastViewed: null,
+          totalViews: 0,
+          notes: null,
+          metadata: {
+            scores: business.scores ?? { photo_score: 0, facebook_score: 0 }
+          }
+        };
+        this.businesses.set(siteId, newBusiness);
+      });
+
+      console.log(`Successfully loaded ${this.businesses.size} businesses from GitHub metadata`);
+    } catch (error) {
+      console.error('Error initializing businesses:', error);
+      throw error;
+    }
+  }
+
+  async getBusinesses(): Promise<Business[]> {
+    return Array.from(this.businesses.values());
+  }
+
+  async getBusiness(siteId: string): Promise<Business | undefined> {
+    return this.businesses.get(siteId);
+  }
+
+  async createBusiness(insertBusiness: InsertBusiness): Promise<Business> {
+    const id = this.currentId++;
+    const business: Business = {
+      ...insertBusiness,
+      id,
+      pipelineStage: "website_created",
+      lastViewed: null,
+      totalViews: 0,
+      notes: null,
+      metadata: {}
+    };
+    this.businesses.set(business.siteId, business);
+    return business;
+  }
+
+  async updateBusinessStage(siteId: string, stage: string): Promise<Business> {
+    const business = await this.getBusiness(siteId);
+    if (!business) throw new Error("Business not found");
+
+    // Update stage
+    business.pipelineStage = stage;
+    this.businesses.set(siteId, business);
+
+    console.log(`Updated pipeline stage for ${business.name} to ${stage}`);
+    return business;
+  }
+
+  async updateBusinessNotes(siteId: string, notes: string): Promise<Business> {
+    const business = await this.getBusiness(siteId);
+    if (!business) throw new Error("Business not found");
+
+    business.notes = notes;
+    this.businesses.set(siteId, business);
+    return business;
+  }
+
+  async recordVisit(businessId: number, duration: number, source: string): Promise<Visit> {
+    const visit: Visit = {
+      id: this.visitId++,
+      businessId,
+      timestamp: new Date(),
+      duration,
+      source
+    };
+
+    const businessVisits = this.visits.get(businessId) || [];
+    businessVisits.push(visit);
+    this.visits.set(businessId, businessVisits);
+
+    // Update business visit stats and pipeline stage
+    const business = Array.from(this.businesses.values()).find(b => b.id === businessId);
+    if (business) {
+      business.lastViewed = visit.timestamp;
+      business.totalViews = (business.totalViews || 0) + 1;
+
+      // Update pipeline stage to website_viewed if it's in an earlier stage
+      if (business.pipelineStage === "website_created" || business.pipelineStage === "website_sent") {
+        business.pipelineStage = "website_viewed";
+        console.log(`Updated pipeline stage to website_viewed for business ${business.name}`);
+      }
+
+      this.businesses.set(business.siteId, business);
+    }
+
+    console.log(`Recorded visit for business ${businessId}, duration: ${duration}s, source: ${source}`);
+    return visit;
+  }
+
+  async getVisits(siteId: string): Promise<Visit[]> {
+    const business = await this.getBusiness(siteId);
+    if (!business) return [];
+    return this.visits.get(business.id) || [];
+  }
+}
+
+export const storage = new MemStorage();
+
+=== Server DB (server/db.ts) ===
+
+import { Pool, neonConfig } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-serverless';
+import ws from "ws";
+import * as schema from "@shared/schema";
+
+neonConfig.webSocketConstructor = ws;
+
+if (!process.env.DATABASE_URL) {
+  throw new Error(
+    "DATABASE_URL must be set. Did you forget to provision a database?",
+  );
+}
+
+export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+export const db = drizzle({ client: pool, schema });
+
+
+=== Client App (client/src/App.tsx) ===
+
+import { Switch, Route } from "wouter";
+import { queryClient } from "./lib/queryClient";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "@/components/ui/toaster";
+import NotFound from "@/pages/not-found";
+import Dashboard from "@/pages/dashboard";
+import BusinessDetails from "@/pages/business-details";
+
+function Router() {
+  return (
+    <Switch>
+      <Route path="/" component={Dashboard} />
+      <Route path="/business/:siteId" component={BusinessDetails} />
+      <Route component={NotFound} />
+    </Switch>
+  );
+}
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <Router />
+      <Toaster />
+    </QueryClientProvider>
+  );
+}
+
+export default App;
+
+
+=== Client Main (client/src/main.tsx) ===
+
+import { createRoot } from "react-dom/client";
+import App from "./App";
+import "./index.css";
+
+createRoot(document.getElementById("root")!).render(<App />);
+
+
+=== Dashboard Page (client/src/pages/dashboard.tsx) ===
+
+import { useQuery } from "@tanstack/react-query";
+import { BusinessList } from "@/components/business-list";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import type { Business } from "@shared/schema";
+import { PIPELINE_STAGES } from "@/lib/constants";
+
+export default function Dashboard() {
+  const { data: businesses, isLoading } = useQuery<Business[]>({
+    queryKey: ["/api/businesses"]
+  });
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto p-4">
+        <Card>
+          <CardHeader className="border-b">
+            <CardTitle className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+              Pipeline Dashboard
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <Skeleton className="h-[400px] w-full" />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Group businesses by pipeline stage
+  const businessesByStage = businesses?.reduce((acc, business) => {
+    const stage = business.pipelineStage || "website_created";
+    if (!acc[stage]) acc[stage] = [];
+    acc[stage].push(business);
+    return acc;
+  }, {} as Record<string, Business[]>);
+
+  return (
+    <div className="container mx-auto p-4 space-y-8">
+      <Card className="border-0 shadow-lg">
+        <CardHeader className="border-b bg-gradient-to-r from-blue-50 to-blue-100">
+          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+            Pipeline Dashboard
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {Object.entries(PIPELINE_STAGES).map(([key, { label, color }]) => (
+              <Card key={key} className="shadow-md">
+                <CardHeader className={`${color} text-white`}>
+                  <CardTitle className="text-lg font-semibold">{label}</CardTitle>
+                  <div className="text-sm opacity-90">
+                    {businessesByStage?.[key]?.length || 0} businesses
+                  </div>
+                </CardHeader>
+                <CardContent className="p-4">
+                  {businessesByStage?.[key] && (
+                    <BusinessList businesses={businessesByStage[key]} />
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+=== Business Details Page (client/src/pages/business-details.tsx) ===
+
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useParams, Link } from "wouter";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { PipelineStage } from "@/components/pipeline-stage";
+import { AnalyticsDashboard } from "@/components/analytics-dashboard";
+import { WebhookCode } from "@/components/webhook-code";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { Home, ChevronRight, ArrowLeft } from "lucide-react";
+import type { Business, PipelineStage as PipelineStageType } from "@shared/schema";
+import { PIPELINE_STAGES } from "@/lib/constants";
+
+export default function BusinessDetails() {
+  const { siteId } = useParams();
+  const { toast } = useToast();
+
+  const { data: business, isLoading } = useQuery<Business>({
+    queryKey: [`/api/businesses/${siteId}`]
+  });
+
+  const updateStage = useMutation({
+    mutationFn: async (stage: PipelineStageType) => {
+      await apiRequest("PATCH", `/api/businesses/${siteId}/stage`, { stage });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/businesses/${siteId}`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/businesses"] });
+      toast({
+        title: "Success",
+        description: "Pipeline stage updated"
+      });
+    }
+  });
+
+  const updateNotes = useMutation({
+    mutationFn: async (notes: string) => {
+      await apiRequest("PATCH", `/api/businesses/${siteId}/notes`, { notes });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/businesses/${siteId}`] });
+      toast({
+        title: "Success",
+        description: "Notes updated"
+      });
+    }
+  });
+
+  if (isLoading || !business) {
+    return <div className="container mx-auto p-4">Loading...</div>;
+  }
+
+  return (
+    <div className="container mx-auto p-4 space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 text-sm text-gray-600">
+          <Link href="/">
+            <a className="flex items-center gap-1 hover:text-gray-900">
+              <Home className="h-4 w-4" />
+              Home
+            </a>
+          </Link>
+          <ChevronRight className="h-4 w-4" />
+          <span>{business.name}</span>
+        </div>
+        <Link href="/">
+          <Button variant="ghost" className="gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Dashboard
+          </Button>
+        </Link>
+      </div>
+
+      <Card className="border-0 shadow-lg">
+        <CardHeader className="border-b bg-gradient-to-r from-blue-50 to-blue-100">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+              {business.name}
+            </CardTitle>
+            <WebhookCode businessId={business.siteId} />
+          </div>
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="grid md:grid-cols-2 gap-8">
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Pipeline Stage</h3>
+                <div className="flex flex-wrap items-center gap-4">
+                  <PipelineStage stage={business.pipelineStage || "website_created"} />
+                  <div className="flex flex-wrap gap-2">
+                    {Object.entries(PIPELINE_STAGES).map(([stage, { label, color }]) => (
+                      stage !== business.pipelineStage && (
+                        <Button
+                          key={stage}
+                          size="sm"
+                          onClick={() => updateStage.mutate(stage as PipelineStageType)}
+                          disabled={updateStage.isPending}
+                          className={`${color} hover:opacity-90 text-white`}
+                        >
+                          Move to {label}
+                        </Button>
+                      )
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Business Details</h3>
+                <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg">
+                  <div>
+                    <p className="text-sm text-gray-600">Rating</p>
+                    <p className="font-medium">{business.rating || "N/A"}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Total Reviews</p>
+                    <p className="font-medium">{business.totalReviews || "N/A"}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Has Website</p>
+                    <p className="font-medium">{business.hasWebsite ? "Yes" : "No"}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Has Facebook</p>
+                    <p className="font-medium">{business.hasFacebook ? "Yes" : "No"}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Notes</h3>
+              <Textarea
+                value={business.notes || ""}
+                onChange={(e) => updateNotes.mutate(e.target.value)}
+                placeholder="Add notes about this business, communication history, follow-ups..."
+                className="min-h-[200px] bg-gray-50"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <AnalyticsDashboard businessId={business.id} />
+    </div>
+  );
+}

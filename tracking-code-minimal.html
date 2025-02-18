@@ -1,0 +1,18 @@
+<!-- Add this right before your closing </body> tag -->
+<script>
+  // Get the business ID from URL parameters
+  const urlParams = new URLSearchParams(window.location.search);
+  const siteId = urlParams.get('site_id');
+
+  if (siteId) {
+    // Send visit data when page loads
+    fetch('https://bbd5027a-f3b6-48cb-b2e3-7c31fdf9c394-00-1a4b9g7vepksy.janeway.replit.dev/api/businesses/' + siteId + '/visits', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        duration: 0,
+        source: document.referrer || 'direct'
+      })
+    }).catch(e => console.error('Failed to send visit:', e));
+  }
+</script>

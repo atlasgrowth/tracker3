@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="/analytics.js"></script>
+  </head>
+  <!-- Add this right before your closing </body> tag -->
+  <script>
+    // Get the business ID from URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const siteId = urlParams.get('site_id');
+
+    if (siteId) {
+      // Initialize tracking
+      const SESSION = {
+        siteId: siteId,
+        startTime: Date.now(),
+        pageViews: [{
+          path: window.location.pathname + window.location.search,
+          timestamp: Date.now(),
+          deviceInfo: {
+            browser: navigator.userAgent,
+            os: navigator.platform,
+            screenSize: { width: window.screen.width, height: window.screen.height }
+          }
+        }]
+      };
+
+      // Send data when user leaves
+      window.addEventListener('beforeunload', async () => {
+        try {
+          await fetch('https://e1ad1fcb-e0d6-4975-9d66-21666cc89433-00-edqcrzbbmbuj.riker.replit.dev/api/businesses/' + siteId + '/visits', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              duration: Math.round((Date.now() - SESSION.startTime) / 1000),
+              source: document.referrer || 'direct'
+            })
+          });
+
+          await fetch('https://e1ad1fcb-e0d6-4975-9d66-21666cc89433-00-edqcrzbbmbuj.riker.replit.dev/api/businesses/' + siteId + '/analytics', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(SESSION)
+          });
+        } catch (e) {
+          console.error('Failed to send analytics:', e);
+        }
+      });
+    }
+  </script>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

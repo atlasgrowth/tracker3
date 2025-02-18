@@ -1,0 +1,243 @@
+~/workspace$ python a.py
+Found 22 place IDs to process
+Processing batch 1 with 5 place IDs
+Successfully scraped 64 reviews in this batch
+Waiting 5 seconds before next batch...
+Processing batch 2 with 5 place IDs
+Successfully scraped 63 reviews in this batch
+Waiting 5 seconds before next batch...
+Processing batch 3 with 5 place IDs
+Successfully scraped 15 reviews in this batch
+Waiting 5 seconds before next batch...
+Processing batch 4 with 5 place IDs
+Successfully scraped 61 reviews in this batch
+Waiting 5 seconds before next batch...
+Processing batch 5 with 2 place IDs
+Successfully scraped 5 reviews in this batch
+
+Scraping complete!
+Total reviews collected: 208
+Results saved to all_google_reviews.json
+
+Sample of collected reviews:
+
+Review 1:
+Place ID: ChIJ6zFoxcp9tSIR9Ibz-IG-wQg
+Rating: 5
+Text: He came out within an hour on a Sunday and got the toilet unclogged and working again in a few minut...
+
+Review 2:
+Place ID: ChIJ6zFoxcp9tSIR9Ibz-IG-wQg
+Rating: 5
+Text: I would highly recommend Doug to anyone. He is an excellent plumber and  an honest, trustworthy pers...
+
+Review 3:
+Place ID: ChIJ6zFoxcp9tSIR9Ibz-IG-wQg
+Rating: 5
+Text: Doug is very knowledgeable, dependable, and has impeccable work ethic. I have used him for more than...
+~/workspace$ python a.py
+Converted 208 reviews to simplified format
+Saved to simplified_reviews.json
+
+Sample of converted reviews:
+
+Review 1:
+Name: JG Rand
+Stars: 5
+Date: 2025-02-16
+Text: He came out within an hour on a Sunday and got the toilet unclogged and working again in a few minut...
+
+Review 2:
+Name: Danna Kelley
+Stars: 5
+Date: 2025-02-15
+Text: I would highly recommend Doug to anyone. He is an excellent plumber and  an honest, trustworthy pers...
+
+Review 3:
+Name: Amy Starling
+Stars: 5
+Date: 2025-02-15
+Text: Doug is very knowledgeable, dependable, and has impeccable work ethic. I have used him for more than...
+~/workspace$ python a.py
+Traceback (most recent call last):
+  File "/home/runner/workspace/a.py", line 53, in <module>
+    main()
+  File "/home/runner/workspace/a.py", line 26, in main
+    with open("reviews.json", "r", encoding="utf-8") as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'reviews.json'
+~/workspace$ python a.py
+Guessed owner names from review texts:
+Great: 29 occurrences
+Very: 29 occurrences
+Brandon: 23 occurrences
+Doug: 19 occurrences
+Thank: 12 occurrences
+Will: 11 occurrences
+Plumbing: 10 occurrences
+Ethan: 9 occurrences
+Called: 9 occurrences
+Would: 8 occurrences
+Aaron: 8 occurrences
+This: 7 occurrences
+These: 7 occurrences
+Had: 6 occurrences
+Highly: 6 occurrences
+Thanks: 6 occurrences
+Came: 5 occurrences
+Definitely: 5 occurrences
+~/workspace$ python a.py
+~/workspace$ pip install spacy
+python -m spacy download en_core_web_sm
+Collecting spacy
+  Downloading spacy-3.8.4-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (27 kB)
+Collecting spacy-legacy<3.1.0,>=3.0.11 (from spacy)
+  Downloading spacy_legacy-3.0.12-py2.py3-none-any.whl.metadata (2.8 kB)
+Collecting spacy-loggers<2.0.0,>=1.0.0 (from spacy)
+  Downloading spacy_loggers-1.0.5-py3-none-any.whl.metadata (23 kB)
+Collecting murmurhash<1.1.0,>=0.28.0 (from spacy)
+  Downloading murmurhash-1.0.12-cp311-cp311-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (2.1 kB)
+Collecting cymem<2.1.0,>=2.0.2 (from spacy)
+  Downloading cymem-2.0.11-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (8.5 kB)
+Collecting preshed<3.1.0,>=3.0.2 (from spacy)
+  Downloading preshed-3.0.9-cp311-cp311-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (2.2 kB)
+Collecting thinc<8.4.0,>=8.3.4 (from spacy)
+  Downloading thinc-8.3.4-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (15 kB)
+Collecting wasabi<1.2.0,>=0.9.1 (from spacy)
+  Downloading wasabi-1.1.3-py3-none-any.whl.metadata (28 kB)
+Collecting srsly<3.0.0,>=2.4.3 (from spacy)
+  Downloading srsly-2.5.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (19 kB)
+Collecting catalogue<2.1.0,>=2.0.6 (from spacy)
+  Downloading catalogue-2.0.10-py3-none-any.whl.metadata (14 kB)
+Collecting weasel<0.5.0,>=0.1.0 (from spacy)
+  Downloading weasel-0.4.1-py3-none-any.whl.metadata (4.6 kB)
+Collecting typer<1.0.0,>=0.3.0 (from spacy)
+  Downloading typer-0.15.1-py3-none-any.whl.metadata (15 kB)
+Collecting tqdm<5.0.0,>=4.38.0 (from spacy)
+  Downloading tqdm-4.67.1-py3-none-any.whl.metadata (57 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━ 57.7/57.7 kB 2.1 MB/s eta 0:00:00
+Collecting numpy>=1.19.0 (from spacy)
+  Downloading numpy-2.2.3-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (62 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━ 62.0/62.0 kB 6.5 MB/s eta 0:00:00
+Requirement already satisfied: requests<3.0.0,>=2.13.0 in ./.pythonlibs/lib/python3.11/site-packages (from spacy) (2.32.3)
+Collecting pydantic!=1.8,!=1.8.1,<3.0.0,>=1.7.4 (from spacy)
+  Downloading pydantic-2.10.6-py3-none-any.whl.metadata (30 kB)
+Collecting jinja2 (from spacy)
+  Downloading jinja2-3.1.5-py3-none-any.whl.metadata (2.6 kB)
+Requirement already satisfied: setuptools in /nix/store/wblvmd5y7izx0z10d1w7ga7zc4apjxmb-python3.11-setuptools-75.1.1/lib/python3.11/site-packages (from spacy) (75.1.1.post0)
+Collecting packaging>=20.0 (from spacy)
+  Downloading packaging-24.2-py3-none-any.whl.metadata (3.2 kB)
+Collecting langcodes<4.0.0,>=3.2.0 (from spacy)
+  Downloading langcodes-3.5.0-py3-none-any.whl.metadata (29 kB)
+Collecting language-data>=1.2 (from langcodes<4.0.0,>=3.2.0->spacy)
+  Downloading language_data-1.3.0-py3-none-any.whl.metadata (4.3 kB)
+Collecting annotated-types>=0.6.0 (from pydantic!=1.8,!=1.8.1,<3.0.0,>=1.7.4->spacy)
+  Downloading annotated_types-0.7.0-py3-none-any.whl.metadata (15 kB)
+Collecting pydantic-core==2.27.2 (from pydantic!=1.8,!=1.8.1,<3.0.0,>=1.7.4->spacy)
+  Downloading pydantic_core-2.27.2-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (6.6 kB)
+Collecting typing-extensions>=4.12.2 (from pydantic!=1.8,!=1.8.1,<3.0.0,>=1.7.4->spacy)
+  Downloading typing_extensions-4.12.2-py3-none-any.whl.metadata (3.0 kB)
+Requirement already satisfied: charset-normalizer<4,>=2 in ./.pythonlibs/lib/python3.11/site-packages (from requests<3.0.0,>=2.13.0->spacy) (3.4.1)
+Requirement already satisfied: idna<4,>=2.5 in ./.pythonlibs/lib/python3.11/site-packages (from requests<3.0.0,>=2.13.0->spacy) (3.10)
+Requirement already satisfied: urllib3<3,>=1.21.1 in ./.pythonlibs/lib/python3.11/site-packages (from requests<3.0.0,>=2.13.0->spacy) (2.3.0)
+Requirement already satisfied: certifi>=2017.4.17 in ./.pythonlibs/lib/python3.11/site-packages (from requests<3.0.0,>=2.13.0->spacy) (2025.1.31)
+Collecting blis<1.3.0,>=1.2.0 (from thinc<8.4.0,>=8.3.4->spacy)
+  Downloading blis-1.2.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (7.7 kB)
+Collecting confection<1.0.0,>=0.0.1 (from thinc<8.4.0,>=8.3.4->spacy)
+  Downloading confection-0.1.5-py3-none-any.whl.metadata (19 kB)
+Collecting click>=8.0.0 (from typer<1.0.0,>=0.3.0->spacy)
+  Downloading click-8.1.8-py3-none-any.whl.metadata (2.3 kB)
+Collecting shellingham>=1.3.0 (from typer<1.0.0,>=0.3.0->spacy)
+  Downloading shellingham-1.5.4-py2.py3-none-any.whl.metadata (3.5 kB)
+Collecting rich>=10.11.0 (from typer<1.0.0,>=0.3.0->spacy)
+  Downloading rich-13.9.4-py3-none-any.whl.metadata (18 kB)
+Collecting cloudpathlib<1.0.0,>=0.7.0 (from weasel<0.5.0,>=0.1.0->spacy)
+  Downloading cloudpathlib-0.20.0-py3-none-any.whl.metadata (14 kB)
+Collecting smart-open<8.0.0,>=5.2.1 (from weasel<0.5.0,>=0.1.0->spacy)
+  Downloading smart_open-7.1.0-py3-none-any.whl.metadata (24 kB)
+Collecting MarkupSafe>=2.0 (from jinja2->spacy)
+  Downloading MarkupSafe-3.0.2-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (4.0 kB)
+Collecting marisa-trie>=1.1.0 (from language-data>=1.2->langcodes<4.0.0,>=3.2.0->spacy)
+  Downloading marisa_trie-1.2.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (9.0 kB)
+Collecting markdown-it-py>=2.2.0 (from rich>=10.11.0->typer<1.0.0,>=0.3.0->spacy)
+  Downloading markdown_it_py-3.0.0-py3-none-any.whl.metadata (6.9 kB)
+Collecting pygments<3.0.0,>=2.13.0 (from rich>=10.11.0->typer<1.0.0,>=0.3.0->spacy)
+  Downloading pygments-2.19.1-py3-none-any.whl.metadata (2.5 kB)
+Collecting wrapt (from smart-open<8.0.0,>=5.2.1->weasel<0.5.0,>=0.1.0->spacy)
+  Downloading wrapt-1.17.2-cp311-cp311-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (6.4 kB)
+Collecting mdurl~=0.1 (from markdown-it-py>=2.2.0->rich>=10.11.0->typer<1.0.0,>=0.3.0->spacy)
+  Downloading mdurl-0.1.2-py3-none-any.whl.metadata (1.6 kB)
+Downloading spacy-3.8.4-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (30.6 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 30.6/30.6 MB 57.0 MB/s eta 0:00:00
+Downloading catalogue-2.0.10-py3-none-any.whl (17 kB)
+Downloading cymem-2.0.11-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (218 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━ 218.9/218.9 kB 18.4 MB/s eta 0:00:00
+Downloading langcodes-3.5.0-py3-none-any.whl (182 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━ 183.0/183.0 kB 15.8 MB/s eta 0:00:00
+Downloading murmurhash-1.0.12-cp311-cp311-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl (134 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━ 134.3/134.3 kB 10.9 MB/s eta 0:00:00
+Downloading numpy-2.2.3-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (16.4 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 16.4/16.4 MB 82.1 MB/s eta 0:00:00
+Downloading packaging-24.2-py3-none-any.whl (65 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 65.5/65.5 kB 6.9 MB/s eta 0:00:00
+Downloading preshed-3.0.9-cp311-cp311-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl (157 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━ 157.2/157.2 kB 12.7 MB/s eta 0:00:00
+Downloading pydantic-2.10.6-py3-none-any.whl (431 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━ 431.7/431.7 kB 31.4 MB/s eta 0:00:00
+Downloading pydantic_core-2.27.2-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (2.0 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.0/2.0 MB 56.8 MB/s eta 0:00:00
+Downloading spacy_legacy-3.0.12-py2.py3-none-any.whl (29 kB)
+Downloading spacy_loggers-1.0.5-py3-none-any.whl (22 kB)
+Downloading srsly-2.5.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (1.1 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.1/1.1 MB 66.6 MB/s eta 0:00:00
+Downloading thinc-8.3.4-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (3.9 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.9/3.9 MB 67.6 MB/s eta 0:00:00
+Downloading tqdm-4.67.1-py3-none-any.whl (78 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 78.5/78.5 kB 6.3 MB/s eta 0:00:00
+Downloading typer-0.15.1-py3-none-any.whl (44 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 44.9/44.9 kB 3.2 MB/s eta 0:00:00
+Downloading wasabi-1.1.3-py3-none-any.whl (27 kB)
+Downloading weasel-0.4.1-py3-none-any.whl (50 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 50.3/50.3 kB 3.8 MB/s eta 0:00:00
+Downloading jinja2-3.1.5-py3-none-any.whl (134 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━ 134.6/134.6 kB 8.5 MB/s eta 0:00:00
+Downloading annotated_types-0.7.0-py3-none-any.whl (13 kB)
+Downloading blis-1.2.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (11.7 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 11.7/11.7 MB 33.8 MB/s eta 0:00:00
+Downloading click-8.1.8-py3-none-any.whl (98 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 98.2/98.2 kB 10.8 MB/s eta 0:00:00
+Downloading cloudpathlib-0.20.0-py3-none-any.whl (52 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 52.5/52.5 kB 5.2 MB/s eta 0:00:00
+Downloading confection-0.1.5-py3-none-any.whl (35 kB)
+Downloading language_data-1.3.0-py3-none-any.whl (5.4 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.4/5.4 MB 72.6 MB/s eta 0:00:00
+Downloading MarkupSafe-3.0.2-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (23 kB)
+Downloading rich-13.9.4-py3-none-any.whl (242 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━ 242.4/242.4 kB 18.0 MB/s eta 0:00:00
+Downloading shellingham-1.5.4-py2.py3-none-any.whl (9.8 kB)
+Downloading smart_open-7.1.0-py3-none-any.whl (61 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 61.7/61.7 kB 5.8 MB/s eta 0:00:00
+Downloading typing_extensions-4.12.2-py3-none-any.whl (37 kB)
+Downloading marisa_trie-1.2.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (1.4 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.4/1.4 MB 10.9 MB/s eta 0:00:00
+Downloading markdown_it_py-3.0.0-py3-none-any.whl (87 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 87.5/87.5 kB 7.5 MB/s eta 0:00:00
+Downloading pygments-2.19.1-py3-none-any.whl (1.2 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.2/1.2 MB 63.3 MB/s eta 0:00:00
+Downloading wrapt-1.17.2-cp311-cp311-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl (83 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 83.2/83.2 kB 8.2 MB/s eta 0:00:00
+Downloading mdurl-0.1.2-py3-none-any.whl (10.0 kB)
+Installing collected packages: cymem, wrapt, wasabi, typing-extensions, tqdm, spacy-loggers, spacy-legacy, shellingham, pygments, packaging, numpy, murmurhash, mdurl, MarkupSafe, marisa-trie, cloudpathlib, click, catalogue, annotated-types, srsly, smart-open, pydantic-core, preshed, markdown-it-py, language-data, jinja2, blis, rich, pydantic, langcodes, typer, confection, weasel, thinc, spacy
+Successfully installed MarkupSafe-3.0.2 annotated-types-0.7.0 blis-1.2.0 catalogue-2.0.10 click-8.1.8 cloudpathlib-0.20.0 confection-0.1.5 cymem-2.0.11 jinja2-3.1.5 langcodes-3.5.0 language-data-1.3.0 marisa-trie-1.2.1 markdown-it-py-3.0.0 mdurl-0.1.2 murmurhash-1.0.12 numpy-2.2.3 packaging-24.2 preshed-3.0.9 pydantic-2.10.6 pydantic-core-2.27.2 pygments-2.19.1 rich-13.9.4 shellingham-1.5.4 smart-open-7.1.0 spacy-3.8.4 spacy-legacy-3.0.12 spacy-loggers-1.0.5 srsly-2.5.1 thinc-8.3.4 tqdm-4.67.1 typer-0.15.1 typing-extensions-4.12.2 wasabi-1.1.3 weasel-0.4.1 wrapt-1.17.2
+error: externally-managed-environment
+
+× This environment is externally managed
+╰─> This command has been disabled as it tries to modify the immutable
+    `/nix/store` filesystem.
+    
+    To use Python with Nix and nixpkgs, have a look at the online documentation:
+    <https://nixos.org/manual/nixpkgs/stable/#python>.
+
+note: If you believe this is a mistake, please contact your Python installation or OS distribution provider. You can override this, at the risk of breaking your Python installation or OS, by passing --break-system-packages.
+hint: See PEP 668 for the detailed specification.
+~/workspace$ 
