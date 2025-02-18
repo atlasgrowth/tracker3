@@ -11,9 +11,9 @@ export function BusinessList({ businesses }: BusinessListProps) {
   return (
     <div className="space-y-4">
       {businesses.map((business) => (
-        <Link key={business.siteId} href={`/business/${business.siteId}`}>
-          <Card className="cursor-pointer hover:border-blue-500 transition-colors">
-            <CardContent className="p-4">
+        <Card key={business.siteId} className="cursor-pointer hover:border-blue-500 transition-colors">
+          <CardContent className="p-4">
+            <Link href={`/business/${business.siteId}`}>
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
@@ -67,9 +67,9 @@ export function BusinessList({ businesses }: BusinessListProps) {
                   )}
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </Link>
+            </Link>
+          </CardContent>
+        </Card>
       ))}
     </div>
   );
