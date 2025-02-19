@@ -34,6 +34,10 @@ interface MetadataBusinesses {
       has_website: boolean;
       has_facebook: boolean;
       city: string;
+      owner_name?: string;
+      introduction?: string;
+      phone?: string;
+      review_link?: string;
     };
   };
 }

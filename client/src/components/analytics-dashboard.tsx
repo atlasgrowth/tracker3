@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 
 interface AnalyticsDashboardProps {
   siteId: string;
+  businessId?: number;
 }
 
 export function AnalyticsDashboard({ siteId }: AnalyticsDashboardProps) {
@@ -174,7 +175,7 @@ export function AnalyticsDashboard({ siteId }: AnalyticsDashboardProps) {
               {analytics?.pageViews && Object.entries(analytics.pageViews).map(([path, views]) => (
                 <div key={path} className="flex justify-between items-center">
                   <div className="font-medium">{path}</div>
-                  <div className="text-sm text-gray-500">{views} views</div>
+                  <div className="text-sm text-gray-500">{String(views)} views</div>
                 </div>
               ))}
             </div>

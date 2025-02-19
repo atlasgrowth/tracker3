@@ -85,7 +85,7 @@ export default function BusinessDetails() {
               <div>
                 <h3 className="text-lg font-semibold mb-4">Pipeline Stage</h3>
                 <div className="flex flex-wrap items-center gap-4">
-                  <PipelineStage stage={business.pipelineStage || "website_created"} />
+                  <PipelineStage stage={(business.pipelineStage || "website_created") as PipelineStageType} />
                   <div className="flex flex-wrap gap-2">
                     {Object.entries(PIPELINE_STAGES).map(([stage, { label, color }]) => (
                       stage !== business.pipelineStage && (

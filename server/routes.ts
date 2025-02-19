@@ -213,7 +213,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const analyticsDir = join(process.cwd(), "analytics");
       const files = await fs.readdir(analyticsDir);
       const siteFiles = files.filter(f => f.startsWith(`analytics_${req.params.siteId}_`));
-      
+
       const analytics = {
         pageViews: {},
         totalVisits: siteFiles.length,
@@ -223,9 +223,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       for (const file of siteFiles) {
         const data = JSON.parse(await fs.readFile(join(analyticsDir, file), 'utf-8'));
-        
+
         // Aggregate page views
-        data.pageViews.forEach(view => {
+        data.pageViews.forEach((view: { path: string }) => {
           analytics.pageViews[view.path] = (analytics.pageViews[view.path] || 0) + 1;
         });
 
@@ -234,13 +234,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const os = data.deviceInfo.os;
         analytics.deviceStats.browsers[browser] = (analytics.deviceStats.browsers[browser] || 0) + 1;
         analytics.deviceStats.os[os] = (analytics.deviceStats.os[os] || 0) + 1;
-        
+
         // Add visit-specific data with session ID matching the visit
         analytics.visits.push({
-          id: data.startTime, // Use startTime as ID to match with visits
+          id: data.startTime,
           navigationPath: data.navigationPath,
           pageViews: data.pageViews
-        });
+        } as { id: number; navigationPath: string[]; pageViews: any[] });
       }
 
       res.json(analytics);
