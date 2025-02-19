@@ -1,0 +1,44 @@
+[12:31:22.937] Running build in Washington, D.C., USA (East) – iad1
+[12:31:23.042] Retrieving list of deployment files...
+[12:31:23.520] Downloading 100 deployment files...
+[12:31:25.375] Restored build cache from previous deployment (6NjUcXbJJnRMZqrA7jQNtNuYQZen)
+[12:31:25.450] Running "vercel build"
+[12:31:25.855] Vercel CLI 41.1.4
+[12:31:25.990] WARN! Due to `builds` existing in your configuration file, the Build and Development Settings defined in your Project Settings will not apply. Learn More: https://vercel.link/unused-build-settings
+[12:31:26.656] Installing dependencies...
+[12:31:28.992] 
+[12:31:28.993] up to date in 2s
+[12:31:28.993] 
+[12:31:28.993] 61 packages are looking for funding
+[12:31:28.993]   run `npm fund` for details
+[12:31:29.222] Using TypeScript 5.6.3 (local user-provided)
+[12:31:35.175] server/routes.ts(228,32): error TS7006: Parameter 'view' implicitly has an 'any' type.
+[12:31:35.176] server/routes.ts(229,11): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+[12:31:35.176] server/routes.ts(229,45): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+[12:31:35.176] server/routes.ts(235,9): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+[12:31:35.176] server/routes.ts(235,52): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+[12:31:35.176] server/routes.ts(236,9): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+[12:31:35.176] server/routes.ts(236,41): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+[12:31:35.176] server/routes.ts(239,31): error TS2345: Argument of type '{ id: any; navigationPath: any; pageViews: any; }' is not assignable to parameter of type 'never'.
+[12:31:35.176] 
+[12:31:35.409] server/storage.ts(122,33): error TS2339: Property 'owner_name' does not exist on type '{ name: string; site_id: string; place_id: string; rating: number; total_reviews: number; scores: { photo_score: number; facebook_score: number; }; has_website: boolean; has_facebook: boolean; city: string; }'.
+[12:31:35.409] server/storage.ts(123,36): error TS2339: Property 'introduction' does not exist on type '{ name: string; site_id: string; place_id: string; rating: number; total_reviews: number; scores: { photo_score: number; facebook_score: number; }; has_website: boolean; has_facebook: boolean; city: string; }'.
+[12:31:35.409] server/storage.ts(124,29): error TS2339: Property 'phone' does not exist on type '{ name: string; site_id: string; place_id: string; rating: number; total_reviews: number; scores: { photo_score: number; facebook_score: number; }; has_website: boolean; has_facebook: boolean; city: string; }'.
+[12:31:35.409] server/storage.ts(125,34): error TS2339: Property 'review_link' does not exist on type '{ name: string; site_id: string; place_id: string; rating: number; total_reviews: number; scores: { photo_score: number; facebook_score: number; }; has_website: boolean; has_facebook: boolean; city: string; }'.
+[12:31:35.409] server/storage.ts(150,11): error TS2322: Type '{ id: number; pipelineStage: string; lastViewed: null; totalViews: number; notes: null; metadata: {}; region: string; siteId: string; name: string; placeId: string; rating?: number | null | undefined; ... 7 more ...; reviewLink?: string | ... 1 more ... | undefined; }' is not assignable to type '{ region: string; siteId: string; id: number; name: string; placeId: string; rating: number | null; totalReviews: number | null; hasWebsite: boolean | null; hasFacebook: boolean | null; ... 9 more ...; metadata: unknown; }'.
+[12:31:35.410]   Types of property 'rating' are incompatible.
+[12:31:35.410]     Type 'number | null | undefined' is not assignable to type 'number | null'.
+[12:31:35.410]       Type 'undefined' is not assignable to type 'number | null'.
+[12:31:35.410] 
+[12:31:40.188] client/src/components/analytics-dashboard.tsx(177,58): error TS2322: Type 'unknown' is not assignable to type 'ReactNode'.
+[12:31:40.188] 
+[12:31:44.120] client/src/pages/business-details.tsx(88,34): error TS2322: Type 'string' is not assignable to type '"website_created" | "website_sent" | "website_viewed" | "lead_contacted" | "follow_up" | "not_interested"'.
+[12:31:44.121] client/src/pages/business-details.tsx(174,27): error TS2322: Type '{ businessId: number; siteId: string; }' is not assignable to type 'IntrinsicAttributes & AnalyticsDashboardProps'.
+[12:31:44.121]   Property 'businessId' does not exist on type 'IntrinsicAttributes & AnalyticsDashboardProps'.
+[12:31:44.121] 
+[12:31:49.620] Build Completed in /vercel/output [23s]
+[12:31:50.010] Deploying outputs...
+[12:31:59.874] 
+[12:32:00.231] Deployment completed
+[12:32:07.952] Uploading build cache [50.37 MB]...
+[12:32:08.510] Build cache uploaded: 557.781ms
