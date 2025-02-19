@@ -63,3 +63,7 @@ app.use((req, res, next) => {
     log(`serving on port ${PORT}`);
   });
 })();
+
+// Placeholder for GitHub OAuth configuration.  Requires additional packages (passport, passport-github) and routes.
+//  The provided changes were insufficient to complete this integration.
+//  Replace this placeholder with proper GitHub OAuth setup using the provided client ID and secret.
